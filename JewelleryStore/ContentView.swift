@@ -9,17 +9,18 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var isAuthenticated = false
-    @State private var showAuth = false
+    @State private var showAuthentication = false
     @State private var currentIndex: Int = 0
     
     var body: some View {
         if isAuthenticated {
             CatalogView()
+                .background(Color("AppBackground"))
         } else {
-            NavigationView {
+            NavigationStack {
                 VStack {
                     // Store name at the top
-                    Text("Jewellery Store")
+                    Text("My Jewellery Store")
                         .font(.largeTitle)
                         .fontWeight(.bold)
                         .padding(.top, UIScreen.main.bounds.height * 0.04)
@@ -41,13 +42,8 @@ struct ContentView: View {
 
                     Spacer()
 
-                    // Hidden NavigationLink for programmatic push
-                    NavigationLink(destination: AuthenticationView(isAuthenticated: $isAuthenticated), isActive: $showAuth) {
-                        EmptyView()
-                    }
-
                     // Bottom button to go to login/registration
-                    Button(action: { showAuth = true }) {
+                    Button(action: { showAuthentication = true }) {
                         Text("Get Started")
                             .font(.title2)
                             .fontWeight(.semibold)
@@ -61,6 +57,11 @@ struct ContentView: View {
                     }
                 }
                 .navigationBarHidden(true)
+                .navigationDestination(isPresented: $showAuthentication) {
+                    AuthenticationView(isAuthenticated: $isAuthenticated)
+                        .background(Color("AppBackground"))
+                }
+                .background(Color("AppBackground"))
             }
         }
     }
@@ -68,24 +69,16 @@ struct ContentView: View {
 
 struct CustomCarouselView: View {
     @Binding var currentIndex: Int
-    @State private var offset: CGFloat = 0
-    @State private var gestureOffset: CGFloat = 0
+    @State private var scrollPosition: Int? = 0
     
     private let cardWidth: CGFloat = UIScreen.main.bounds.width * 0.76
     private let cardHeight: CGFloat = UIScreen.main.bounds.width * 1.16
     private let spacing: CGFloat = 16 // Space between cards
-    private var totalCardWidth: CGFloat {
-        cardWidth + spacing
-    }
     
     var body: some View {
-        GeometryReader { geometry in
-            let totalWidth = geometry.size.width
-            let leadingPadding = (totalWidth - cardWidth) / 2
-            
-            ZStack {
+            ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: spacing) {
-                    ForEach(0..<4) { index in
+                    ForEach(0..<4, id: \.self) { index in
                         let imageName = ["rings01", "necklace01", "bracelet01", "earrings01"][index]
                         let categoryName = ["Rings", "Necklaces", "Bracelets", "Earrings"][index]
                         
@@ -95,45 +88,34 @@ struct CustomCarouselView: View {
                             width: cardWidth,
                             height: cardHeight
                         )
+                        .scrollTransition(.animated(.spring)) { content, phase in
+                            content
+                                .scaleEffect(phase.isIdentity ? 1 : 0.92)
+                                .opacity(phase.isIdentity ? 1 : 0.4)
+                        }
+                        .id(index)
                     }
                 }
-                .offset(x: leadingPadding + offset + gestureOffset)
-                .gesture(
-                    DragGesture()
-                        .onChanged { value in
-                            gestureOffset = value.translation.width
-                        }
-                        .onEnded { value in
-                            withAnimation(.spring()) {
-                                let dragThreshold: CGFloat = 50
-                                
-                                if value.translation.width < -dragThreshold && currentIndex < 3 {
-                                    currentIndex += 1
-                                } else if value.translation.width > dragThreshold && currentIndex > 0 {
-                                    currentIndex -= 1
-                                }
-                                
-                                updateOffset()
-                                gestureOffset = 0
-                            }
-                        }
-                )
+                .scrollTargetLayout()
+                .padding(.horizontal, (UIScreen.main.bounds.width - cardWidth) / 2)
             }
-            .onChange(of: currentIndex) { _, _ in
-                withAnimation(.spring()) {
-                    updateOffset()
+            .scrollPosition(id: $scrollPosition)
+            .scrollTargetBehavior(.viewAligned)
+            .onChange(of: scrollPosition) { oldValue, newValue in
+                if let newValue = newValue {
+                    currentIndex = newValue
+                }
+            }
+            .onChange(of: currentIndex) { oldValue, newValue in
+                if scrollPosition != newValue {
+                    scrollPosition = newValue
                 }
             }
             .onAppear {
-                updateOffset()
+                scrollPosition = currentIndex
             }
         }
     }
-    
-    private func updateOffset() {
-        offset = -CGFloat(currentIndex) * totalCardWidth
-    }
-}
 
 struct CardView: View {
     let imageName: String
