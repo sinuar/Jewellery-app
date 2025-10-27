@@ -12,12 +12,6 @@ struct ContentView: View {
     @State private var showAuth = false
     @State private var currentIndex: Int = 0
     
-    private let cardWidth: CGFloat = UIScreen.main.bounds.width * 0.82
-    private let cardSpacing: CGFloat = 16
-    private var totalCardWidth: CGFloat {
-        cardWidth + cardSpacing
-    }
-    
     var body: some View {
         if isAuthenticated {
             CatalogView()
@@ -28,52 +22,13 @@ struct ContentView: View {
                     Text("Jewellery Store")
                         .font(.largeTitle)
                         .fontWeight(.bold)
-                        .padding(.top, 32)
+                        .padding(.top, 40)
 
-                    // Carousel implemented with TabView + selection binding for reliable paging
-                    TabView(selection: $currentIndex) {
-                        ForEach(0..<4) { index in
-                            let imageName = ["rings01", "necklace01", "bracelet01", "earrings01"][index]
-                            let categoryName = ["Rings", "Necklaces", "Bracelets", "Earrings"][index]
-                            
-                            ZStack {
-                                Image(imageName)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: cardWidth, height: 480)
-                                    .clipShape(RoundedRectangle(cornerRadius: 24))
-                                
-                                // Gradient overlay for text visibility
-                                LinearGradient(
-                                    gradient: Gradient(colors: [.clear, .black.opacity(0.5)]),
-                                    startPoint: .top,
-                                    endPoint: .bottom
-                                )
-                                .clipShape(RoundedRectangle(cornerRadius: 24))
-                                
-                                // Category name at the bottom
-                                VStack {
-                                    Spacer()
-                                    Text(categoryName)
-                                        .font(.title)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.white)
-                                        .padding(.bottom, 24)
-                                }
-                            }
-                            .frame(width: cardWidth, height: 480)
-                            .shadow(radius: 8)
-                            .padding(.vertical, 12)
-                            .tag(index)
-                        }
-                    }
-                    .tabViewStyle(.page(indexDisplayMode: .never)) // Hide built-in page indicators
-                    .frame(height: 520)
-                    .padding(.top, 16)
-                    // Add horizontal padding so neighboring cards peek
-                    .padding(.horizontal, UIScreen.main.bounds.width * 0.09)
+                    // Custom carousel with better spacing control
+                    CustomCarouselView(currentIndex: $currentIndex)
+                        .frame(height: UIScreen.main.bounds.width * 1.2)
+                        .padding(.top, 16)
 
-                    
                     // Page indicators
                     HStack(spacing: 8) {
                         ForEach(0..<4) { index in
@@ -84,7 +39,6 @@ struct ContentView: View {
                     }
                     .padding(.top, 8)
 
-                    
                     Spacer()
 
                     // Hidden NavigationLink for programmatic push
@@ -109,6 +63,110 @@ struct ContentView: View {
                 .navigationBarHidden(true)
             }
         }
+    }
+}
+
+struct CustomCarouselView: View {
+    @Binding var currentIndex: Int
+    @State private var offset: CGFloat = 0
+    @State private var gestureOffset: CGFloat = 0
+    
+    private let cardWidth: CGFloat = UIScreen.main.bounds.width * 0.76
+    private let cardHeight: CGFloat = UIScreen.main.bounds.width * 1.16
+    private let spacing: CGFloat = 16 // Space between cards
+    private var totalCardWidth: CGFloat {
+        cardWidth + spacing
+    }
+    
+    var body: some View {
+        GeometryReader { geometry in
+            let totalWidth = geometry.size.width
+            let leadingPadding = (totalWidth - cardWidth) / 2
+            
+            ZStack {
+                HStack(spacing: spacing) {
+                    ForEach(0..<4) { index in
+                        let imageName = ["rings01", "necklace01", "bracelet01", "earrings01"][index]
+                        let categoryName = ["Rings", "Necklaces", "Bracelets", "Earrings"][index]
+                        
+                        CardView(
+                            imageName: imageName,
+                            categoryName: categoryName,
+                            width: cardWidth,
+                            height: cardHeight
+                        )
+                    }
+                }
+                .offset(x: leadingPadding + offset + gestureOffset)
+                .gesture(
+                    DragGesture()
+                        .onChanged { value in
+                            gestureOffset = value.translation.width
+                        }
+                        .onEnded { value in
+                            withAnimation(.spring()) {
+                                let dragThreshold: CGFloat = 50
+                                
+                                if value.translation.width < -dragThreshold && currentIndex < 3 {
+                                    currentIndex += 1
+                                } else if value.translation.width > dragThreshold && currentIndex > 0 {
+                                    currentIndex -= 1
+                                }
+                                
+                                updateOffset()
+                                gestureOffset = 0
+                            }
+                        }
+                )
+            }
+            .onChange(of: currentIndex) { _, _ in
+                withAnimation(.spring()) {
+                    updateOffset()
+                }
+            }
+            .onAppear {
+                updateOffset()
+            }
+        }
+    }
+    
+    private func updateOffset() {
+        offset = -CGFloat(currentIndex) * totalCardWidth
+    }
+}
+
+struct CardView: View {
+    let imageName: String
+    let categoryName: String
+    let width: CGFloat
+    let height: CGFloat
+    
+    var body: some View {
+        ZStack {
+            Image(imageName)
+                .resizable()
+                .scaledToFill()
+                .frame(width: width, height: height)
+                .clipShape(RoundedRectangle(cornerRadius: 24))
+            
+            LinearGradient(
+                gradient: Gradient(colors: [.clear, .black.opacity(0.5)]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 24))
+            
+            VStack {
+                Spacer()
+                Text(categoryName)
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                    .padding(.bottom, 24)
+            }
+        }
+        .frame(width: width, height: height)
+        .shadow(radius: 8)
     }
 }
 
