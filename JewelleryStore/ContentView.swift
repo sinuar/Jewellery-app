@@ -30,31 +30,50 @@ struct ContentView: View {
                         .fontWeight(.bold)
                         .padding(.top, 32)
 
-                    // Custom carousel with snapping
-                    GeometryReader { geometry in
-                        let totalWidth = geometry.size.width
-                        
-                        SnapCarouselView(
-                            items: Array(0..<4),
-                            cardWidth: cardWidth,
-                            cardSpacing: cardSpacing,
-                            totalWidth: totalWidth,
-                            currentIndex: $currentIndex
-                        ) { index in
+                    // Carousel implemented with TabView + selection binding for reliable paging
+                    TabView(selection: $currentIndex) {
+                        ForEach(0..<4) { index in
+                            let imageName = ["rings01", "necklace01", "bracelet01", "earrings01"][index]
+                            let categoryName = ["Rings", "Necklaces", "Bracelets", "Earrings"][index]
+                            
                             ZStack {
-                                RoundedRectangle(cornerRadius: 24)
-                                    .fill(Color.white.opacity(0.95))
-                                    .shadow(radius: 6)
-                                Text("Category \(index + 1)")
-                                    .font(.title)
-                                    .foregroundColor(.black)
+                                Image(imageName)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: cardWidth, height: 480)
+                                    .clipShape(RoundedRectangle(cornerRadius: 24))
+                                
+                                // Gradient overlay for text visibility
+                                LinearGradient(
+                                    gradient: Gradient(colors: [.clear, .black.opacity(0.5)]),
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                                .clipShape(RoundedRectangle(cornerRadius: 24))
+                                
+                                // Category name at the bottom
+                                VStack {
+                                    Spacer()
+                                    Text(categoryName)
+                                        .font(.title)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.white)
+                                        .padding(.bottom, 24)
+                                }
                             }
                             .frame(width: cardWidth, height: 480)
+                            .shadow(radius: 8)
+                            .padding(.vertical, 12)
+                            .tag(index)
                         }
                     }
+                    .tabViewStyle(.page(indexDisplayMode: .never)) // Hide built-in page indicators
                     .frame(height: 520)
                     .padding(.top, 16)
+                    // Add horizontal padding so neighboring cards peek
+                    .padding(.horizontal, UIScreen.main.bounds.width * 0.09)
 
+                    
                     // Page indicators
                     HStack(spacing: 8) {
                         ForEach(0..<4) { index in
@@ -65,6 +84,7 @@ struct ContentView: View {
                     }
                     .padding(.top, 8)
 
+                    
                     Spacer()
 
                     // Hidden NavigationLink for programmatic push
@@ -92,102 +112,7 @@ struct ContentView: View {
     }
 }
 
-// Snap Carousel View with proper scrolling behavior
-struct SnapCarouselView<Content: View, T: Hashable>: View {
-    let items: [T]
-    let cardWidth: CGFloat
-    let cardSpacing: CGFloat
-    let totalWidth: CGFloat
-    @Binding var currentIndex: Int
-    let content: (T) -> Content
-    
-    @State private var gestureOffset: CGFloat = 0
-    @State private var isDragging = false
-    
-    private let totalCardWidth: CGFloat
-    private let leadingPadding: CGFloat
-    
-    init(
-        items: [T],
-        cardWidth: CGFloat,
-        cardSpacing: CGFloat,
-        totalWidth: CGFloat,
-        currentIndex: Binding<Int>,
-        @ViewBuilder content: @escaping (T) -> Content
-    ) {
-        self.items = items
-        self.cardWidth = cardWidth
-        self.cardSpacing = cardSpacing
-        self.totalWidth = totalWidth
-        self._currentIndex = currentIndex
-        self.content = content
-        self.totalCardWidth = cardWidth + cardSpacing
-        self.leadingPadding = (totalWidth - totalCardWidth) / 2
-    }
-    
-    var body: some View {
-        ScrollViewReader { proxy in
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: cardSpacing) {
-                    ForEach(Array(items.enumerated()), id: \.offset) { index, item in
-                        content(item)
-                            .id(index)
-                    }
-                }
-                .padding(.horizontal, leadingPadding)
-            }
-            .content.offset(x: gestureOffset)
-            .gesture(
-                DragGesture()
-                    .onChanged { value in
-                        isDragging = true
-                        gestureOffset = value.translation.width
-                    }
-                    .onEnded { value in
-                        isDragging = false
-                        let predictedEndOffset = value.predictedEndTranslation.width
-                        let velocity = abs(predictedEndOffset) > 500 ? predictedEndOffset : 0
-                        
-                        // Calculate target index based on drag velocity and direction
-                        let dragThreshold: CGFloat = 50
-                        var targetIndex = currentIndex
-                        
-                        if abs(value.translation.width) > dragThreshold || abs(velocity) > 500 {
-                            if value.translation.width > 0 || velocity > 0 {
-                                // Swiping right - go to previous card
-                                targetIndex = max(0, currentIndex - 1)
-                            } else {
-                                // Swiping left - go to next card
-                                targetIndex = min(items.count - 1, currentIndex + 1)
-                            }
-                        }
-                        
-                        // Update current index and snap to position
-                        currentIndex = targetIndex
-                        
-                        // Animate to the target card
-                        withAnimation(.interpolatingSpring(stiffness: 300, damping: 30)) {
-                            proxy.scrollTo(targetIndex, anchor: .center)
-                        }
-                        
-                        gestureOffset = 0
-                    }
-            )
-            .onChange(of: currentIndex) { oldValue, newValue in
-                // Only programmatically scroll if not currently dragging
-                if !isDragging {
-                    withAnimation(.interpolatingSpring(stiffness: 300, damping: 30)) {
-                        proxy.scrollTo(newValue, anchor: .center)
-                    }
-                }
-            }
-            .onAppear {
-                // Center the first item on appear
-                proxy.scrollTo(0, anchor: .center)
-            }
-        }
-    }
-}
+
 #Preview {
     ContentView()
 }
