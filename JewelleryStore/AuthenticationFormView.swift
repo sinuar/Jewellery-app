@@ -1,5 +1,5 @@
 //
-//  AuthFormView.swift
+//  AuthenticationFormView.swift
 //  JewelleryStore
 //
 //  Created by Sinuhe Alvarez Ruedas on 09/10/25.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct AuthFormView: View {
+struct AuthenticationFormView: View {
     @Binding var isAuthenticated: Bool
     var isSignUp: Bool
     @State private var username = ""
@@ -53,19 +53,19 @@ struct AuthFormView: View {
         if isSignUp {
             NetworkManager.shared.signup(username: username, password: password) { result in
                 DispatchQueue.main.async {
-                    handleAuthResult(result)
+                    handleAuthenticationResult(result)
                 }
             }
         } else {
             NetworkManager.shared.login(username: username, password: password) { result in
                 DispatchQueue.main.async {
-                    handleAuthResult(result)
+                    handleAuthenticationResult(result)
                 }
             }
         }
     }
     
-    private func handleAuthResult(_ result: Result<AuthResponse, Error>) {
+    private func handleAuthenticationResult(_ result: Result<AuthenticationResponse, Error>) {
         switch result {
         case .success(let response):
             if response.success, let _ = response.token {

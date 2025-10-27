@@ -14,7 +14,7 @@ struct ContentView: View {
         if isAuthenticated {
             CatalogView()
         } else {
-            AuthView(isAuthenticated: $isAuthenticated)
+            AuthenticationView(isAuthenticated: $isAuthenticated)
         }
     }
 }

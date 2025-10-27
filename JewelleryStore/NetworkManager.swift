@@ -67,13 +67,13 @@ class NetworkManager {
     }
 
     // MARK: - Authentication
-    func login(username: String, password: String, completion: @escaping (Result<AuthResponse, Error>) -> Void) {
-        let request = AuthRequest(username: username, password: password)
+    func login(username: String, password: String, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
+        let request = AuthenticationRequest(username: username, password: password)
         post(endpoint: "/login", body: request, completion: completion)
     }
 
-    func signup(username: String, password: String, completion: @escaping (Result<AuthResponse, Error>) -> Void) {
-        let request = AuthRequest(username: username, password: password)
+    func signup(username: String, password: String, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
+        let request = AuthenticationRequest(username: username, password: password)
         post(endpoint: "/signup", body: request, completion: completion)
     }
 }

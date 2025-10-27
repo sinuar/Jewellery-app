@@ -1,5 +1,5 @@
 //
-//  AuthView.swift
+//  AuthenticationView.swift
 //  JewelleryStore
 //
 //  Created by Sinuhe Alvarez Ruedas on 08/10/25.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct AuthView: View {
+struct AuthenticationView: View {
     @Binding var isAuthenticated: Bool
     @State private var showLoginSheet = false
     @State private var showRegisterSheet = false
@@ -22,7 +22,7 @@ struct AuthView: View {
 
             VStack {
                 Spacer()
-                VStack(spacing: 24) {
+                VStack(spacing: 16) {
                     Button(action: { showLoginSheet = true }) {
                         Text("Log In")
                             .font(.title)
@@ -43,17 +43,14 @@ struct AuthView: View {
                     }
                 }
                 .padding(.horizontal, 32)
-                .padding(.bottom, 48)
+                .padding(.bottom, 16)
             }
         }
         .sheet(isPresented: $showLoginSheet) {
-            AuthFormView(isAuthenticated: $isAuthenticated, isSignUp: false)
+            AuthenticationFormView(isAuthenticated: $isAuthenticated, isSignUp: false)
         }
         .sheet(isPresented: $showRegisterSheet) {
-            AuthFormView(isAuthenticated: $isAuthenticated, isSignUp: true)
+            AuthenticationFormView(isAuthenticated: $isAuthenticated, isSignUp: true)
         }
     }
-
-    // ...existing code...
-    // Authentication logic moved to AuthFormView
 }
