@@ -22,12 +22,12 @@ struct ContentView: View {
                     Text("Jewellery Store")
                         .font(.largeTitle)
                         .fontWeight(.bold)
-                        .padding(.top, 40)
+                        .padding(.top, UIScreen.main.bounds.height * 0.04)
 
                     // Custom carousel with better spacing control
                     CustomCarouselView(currentIndex: $currentIndex)
                         .frame(height: UIScreen.main.bounds.width * 1.2)
-                        .padding(.top, 16)
+                        .padding(.top, UIScreen.main.bounds.height * 0.02)
 
                     // Page indicators
                     HStack(spacing: 8) {
