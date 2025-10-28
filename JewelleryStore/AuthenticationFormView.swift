@@ -10,54 +10,95 @@ import SwiftUI
 struct AuthenticationFormView: View {
     @Binding var isAuthenticated: Bool
     var isSignUp: Bool
-    @State private var username = ""
+    var onToggleAuthMode: () -> Void = {}
+    @AppStorage("userEmail") private var userEmail: String = ""
+    @State private var email = ""
     @State private var password = ""
     @State private var errorMessage = ""
-    @Environment(\.presentationMode) var presentationMode
     
     var body: some View {
-        VStack(spacing: 24) {
-            Text(isSignUp ? "Register" : "Log In")
-                .font(.largeTitle)
-                .padding(.top, 32)
-            TextField("Username", text: $username)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
+        ScrollView {
+            VStack(spacing: 20) {
+                // Logo / Branding
+                VStack(spacing: 12) {
+                    Image("diamond-necklace")
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 96, height: 96)
+                        .clipShape(Circle())
+                        .shadow(radius: 6)
+                    Text("My Jewellery Store")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                }
+                .padding(.top, 24)
+
+                Text(isSignUp ? "Sign Up" : "Sign In")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+
+                // Form fields
+                VStack(spacing: 16) {
+                    TextField("Email", text: $email)
+                        .keyboardType(.emailAddress)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled(true)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+
+                    SecureField("Password", text: $password)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                }
                 .padding(.horizontal)
-            SecureField("Password", text: $password)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
+
+                if !errorMessage.isEmpty {
+                    Text(errorMessage)
+                        .foregroundColor(.red)
+                        .font(.footnote)
+                        .padding(.horizontal)
+                }
+
+                Button(isSignUp ? "Create Account" : "Sign In") {
+                    authenticate()
+                }
+                .font(.title3)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.accentColor.opacity(0.9))
+                .foregroundColor(.white)
+                .cornerRadius(14)
                 .padding(.horizontal)
-            if !errorMessage.isEmpty {
-                Text(errorMessage)
-                    .foregroundColor(.red)
+
+                // Toggle between Sign In / Sign Up
+                HStack(spacing: 4) {
+                    Text(isSignUp ? "Already have an account?" : "Don't have an account?")
+                        .foregroundColor(.secondary)
+                    Button(action: onToggleAuthMode) {
+                        Text(isSignUp ? "Sign In" : "Sign Up")
+                            .fontWeight(.semibold)
+                    }
+                }
+                .font(.footnote)
+
+                Spacer(minLength: 20)
             }
-            Button(isSignUp ? "Create Account" : "Log In") {
-                authenticate()
-            }
-            .font(.title2)
-            .frame(maxWidth: 300)
-            .padding()
-            .background(Color.accentColor.opacity(0.85))
-            .foregroundColor(.white)
-            .cornerRadius(24)
-            Spacer()
         }
-        .padding()
+        .padding(.top, 8)
     }
     
     func authenticate() {
         errorMessage = ""
-        guard !username.isEmpty, !password.isEmpty else {
-            errorMessage = "Please enter both username and password."
+        guard !email.isEmpty, !password.isEmpty else {
+            errorMessage = "Please enter both email and password."
             return
         }
         if isSignUp {
-            NetworkManager.shared.signup(username: username, password: password) { result in
+            NetworkManager.shared.signup(username: email, password: password) { result in
                 DispatchQueue.main.async {
                     handleAuthenticationResult(result)
                 }
             }
         } else {
-            NetworkManager.shared.login(username: username, password: password) { result in
+            NetworkManager.shared.login(username: email, password: password) { result in
                 DispatchQueue.main.async {
                     handleAuthenticationResult(result)
                 }
@@ -69,8 +110,8 @@ struct AuthenticationFormView: View {
         switch result {
         case .success(let response):
             if response.success, let _ = response.token {
+                userEmail = email
                 isAuthenticated = true
-                presentationMode.wrappedValue.dismiss()
             } else {
                 errorMessage = response.message ?? "Authentication failed."
             }

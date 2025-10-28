@@ -11,35 +11,154 @@ struct JewelleryItem: Identifiable, Decodable {
     let id: Int
     let name: String
     let price: Double
-    // imageName removed for backend simplicity
 }
 
 struct CatalogView: View {
     @State private var items: [JewelleryItem] = []
     @State private var errorMessage: String = ""
+    @State private var selectedCategory: Category = .all
+    @AppStorage("userEmail") private var userEmail: String = ""
+
+    private enum Category: String, CaseIterable, Identifiable {
+        case all = "All"
+        case rings = "Rings"
+        case necklaces = "Necklaces"
+        case earrings = "Earrings"
+        case bracelets = "Bracelets"
+        var id: String { rawValue }
+    }
+
+    private struct DemoProduct: Identifiable {
+        let id: Int
+        let name: String
+        let price: Double
+        let imageName: String
+        let category: Category
+    }
+
+    private var demoProducts: [DemoProduct] {
+        [
+            DemoProduct(id: 1, name: "Diamond Ring", price: 1299.0, imageName: "rings01", category: .rings),
+            DemoProduct(id: 2, name: "Emerald Necklace", price: 1799.0, imageName: "necklace01", category: .necklaces),
+            DemoProduct(id: 3, name: "Gold Bracelet", price: 899.0, imageName: "bracelet01", category: .bracelets),
+            DemoProduct(id: 4, name: "Pearl Earrings", price: 499.0, imageName: "earrings01", category: .earrings)
+        ]
+    }
+
+    private var greetingName: String {
+        if let namePart = userEmail.split(separator: "@").first, !namePart.isEmpty {
+            return String(namePart).capitalized
+        }
+        return "Guest"
+    }
 
     var body: some View {
-        NavigationView {
-            List(items) { item in
-                HStack {
-                    Image(systemName: "star") // Replace with actual images
-                        .resizable()
-                        .frame(width: 50, height: 50)
-                    VStack(alignment: .leading) {
-                        Text(item.name)
-                            .font(.headline)
-                        Text("$\(item.price, specifier: "%.2f")")
-                            .font(.subheadline)
+        VStack(spacing: 0) {
+            // Header
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Welcome")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text(greetingName)
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                }
+                Spacer()
+                HStack(spacing: 16) {
+                    Button(action: {}) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.title2)
+                    }
+                    Button(action: {}) {
+                        Image(systemName: "person.circle")
+                            .font(.title2)
                     }
                 }
             }
-            .navigationTitle("Jewellery Catalog")
-            .onAppear(perform: fetchCatalogue)
-            if !errorMessage.isEmpty {
-                Text(errorMessage)
-                    .foregroundColor(.red)
+            .padding(.horizontal)
+            .padding(.top, 8)
+            .padding(.bottom, 8)
+
+            // Categories horizontal scroll
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(Category.allCases) { category in
+                        Button(action: { selectedCategory = category }) {
+                            Text(category.rawValue)
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .padding(.vertical, 8)
+                                .padding(.horizontal, 14)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(category == selectedCategory ? Color.accentColor.opacity(0.9) : Color.gray.opacity(0.15))
+                                )
+                                .foregroundColor(category == selectedCategory ? .white : .primary)
+                        }
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 6)
             }
+
+            // Grid of products
+            ScrollView {
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
+                    ForEach(filteredDemoProducts) { product in
+                        VStack(alignment: .leading, spacing: 8) {
+                            Image(product.imageName)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(height: 150)
+                                .frame(maxWidth: .infinity)
+                                .clipped()
+                                .clipShape(RoundedRectangle(cornerRadius: 14))
+                            Text(product.name)
+                                .font(.subheadline)
+                                .lineLimit(1)
+                            Text("$\(product.price, specifier: "%.2f")")
+                                .font(.footnote)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(8)
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.top, 8)
+
+                if !errorMessage.isEmpty {
+                    Text(errorMessage)
+                        .foregroundColor(.red)
+                        .padding()
+                }
+
+                Spacer(minLength: 80)
+            }
+
+            // Bottom fixed bar
+            HStack {
+                VStack(spacing: 4) {
+                    Image(systemName: "house.fill")
+                    Text("Home").font(.caption2)
+                }
+                .foregroundColor(.accentColor)
+                Spacer()
+                VStack(spacing: 4) {
+                    Image(systemName: "heart")
+                    Text("Favourites").font(.caption2)
+                }
+                Spacer()
+                VStack(spacing: 4) {
+                    Image(systemName: "bag")
+                    Text("Bag").font(.caption2)
+                }
+            }
+            .padding(.horizontal, 32)
+            .padding(.vertical, 10)
+            .background(.ultraThinMaterial)
         }
+        .onAppear(perform: fetchCatalogue)
     }
 
     func fetchCatalogue() {
@@ -52,6 +171,21 @@ struct CatalogView: View {
                     errorMessage = error.localizedDescription
                 }
             }
+        }
+    }
+
+    private var filteredDemoProducts: [DemoProduct] {
+        switch selectedCategory {
+        case .all:
+            return demoProducts
+        case .rings:
+            return demoProducts.filter { $0.category == .rings }
+        case .necklaces:
+            return demoProducts.filter { $0.category == .necklaces }
+        case .earrings:
+            return demoProducts.filter { $0.category == .earrings }
+        case .bracelets:
+            return demoProducts.filter { $0.category == .bracelets }
         }
     }
 }

@@ -9,48 +9,44 @@ import SwiftUI
 
 struct AuthenticationView: View {
     @Binding var isAuthenticated: Bool
-    @State private var showLoginSheet = false
-    @State private var showRegisterSheet = false
+    @State private var isSignUp: Bool = false
 
     var body: some View {
-        ZStack {
-            // Replace "jewellery_bg" with your image asset name
-            Image("diamond-necklace")
-                .resizable()
-                .scaledToFill()
-                .edgesIgnoringSafeArea(.all)
-
-            VStack {
+        VStack(spacing: 0) {
+            HStack {
                 Spacer()
-                VStack(spacing: 16) {
-                    Button(action: { showLoginSheet = true }) {
-                        Text("Log In")
-                            .font(.title)
-                            .frame(maxWidth: 300)
-                            .padding()
-                            .background(Color.white.opacity(0.85))
-                            .foregroundColor(.black)
-                            .cornerRadius(32)
-                    }
-                    Button(action: { showRegisterSheet = true }) {
-                        Text("Register")
-                            .font(.title)
-                            .frame(maxWidth: 300)
-                            .padding()
-                            .background(Color.white.opacity(0.85))
-                            .foregroundColor(.black)
-                            .cornerRadius(32)
-                    }
+                Button(action: { isAuthenticated = true }) {
+                    Text("Skip")
+                        .font(.headline)
+                        .foregroundColor(.accentColor)
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 16)
                 }
-                .padding(.horizontal, 32)
-                .padding(.bottom, 16)
             }
-        }
-        .sheet(isPresented: $showLoginSheet) {
-            AuthenticationFormView(isAuthenticated: $isAuthenticated, isSignUp: false)
-        }
-        .sheet(isPresented: $showRegisterSheet) {
-            AuthenticationFormView(isAuthenticated: $isAuthenticated, isSignUp: true)
+            .padding(.top, 8)
+            .padding(.horizontal, 8)
+
+            // Authentication mode switcher
+//            Picker("Authentication Mode", selection: $isSignUp) {
+//                Text("Sign In").tag(false)
+//                Text("Sign Up").tag(true)
+//            }
+//            .pickerStyle(.segmented)
+//            .padding(.horizontal, 16)
+//            .padding(.top, 8)
+
+            // Form content
+            AuthenticationFormView(
+                isAuthenticated: $isAuthenticated,
+                isSignUp: isSignUp
+            )
+            .padding(.top, 8)
+
+            Spacer(minLength: 0)
         }
     }
+}
+
+#Preview {
+    AuthenticationView(isAuthenticated: .constant(false))
 }
