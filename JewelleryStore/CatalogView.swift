@@ -19,7 +19,7 @@ struct CatalogView: View {
     @State private var selectedCategory: Category = .all
     @AppStorage("userEmail") private var userEmail: String = ""
 
-    private enum Category: String, CaseIterable, Identifiable {
+    enum Category: String, CaseIterable, Identifiable {
         case all = "All"
         case rings = "Rings"
         case necklaces = "Necklaces"
@@ -28,7 +28,7 @@ struct CatalogView: View {
         var id: String { rawValue }
     }
 
-    private struct DemoProduct: Identifiable {
+    struct DemoProduct: Identifiable {
         let id: Int
         let name: String
         let price: Double
@@ -53,14 +53,12 @@ struct CatalogView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
+        NavigationStack {
+            VStack(spacing: 32) {
             // Header
             HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Welcome")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Text(greetingName)
+                    Text("Hello! \(greetingName)")
                         .font(.title2)
                         .fontWeight(.semibold)
                 }
@@ -106,22 +104,25 @@ struct CatalogView: View {
             ScrollView {
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
                     ForEach(filteredDemoProducts) { product in
-                        VStack(alignment: .leading, spacing: 8) {
-                            Image(product.imageName)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(height: 150)
-                                .frame(maxWidth: .infinity)
-                                .clipped()
-                                .clipShape(RoundedRectangle(cornerRadius: 14))
-                            Text(product.name)
-                                .font(.subheadline)
-                                .lineLimit(1)
-                            Text("$\(product.price, specifier: "%.2f")")
-                                .font(.footnote)
-                                .foregroundColor(.secondary)
+                        NavigationLink(destination: ProductDetailView(product: product)) {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Image(product.imageName)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(height: 150)
+                                    .frame(maxWidth: .infinity)
+                                    .clipped()
+                                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                                Text(product.name)
+                                    .font(.subheadline)
+                                    .lineLimit(1)
+                                Text("$\(product.price, specifier: "%.2f")")
+                                    .font(.footnote)
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(8)
                         }
-                        .padding(8)
+                        .buttonStyle(PlainButtonStyle())
                     }
                 }
                 .padding(.horizontal)
@@ -157,6 +158,7 @@ struct CatalogView: View {
             .padding(.horizontal, 32)
             .padding(.vertical, 10)
             .background(.ultraThinMaterial)
+            }
         }
         .onAppear(perform: fetchCatalogue)
     }
