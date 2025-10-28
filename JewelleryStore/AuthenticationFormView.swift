@@ -15,6 +15,7 @@ struct AuthenticationFormView: View {
     @State private var email = ""
     @State private var password = ""
     @State private var errorMessage = ""
+    @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         ScrollView {
@@ -71,10 +72,12 @@ struct AuthenticationFormView: View {
                 // Toggle between Sign In / Sign Up
                 HStack(spacing: 4) {
                     Text(isSignUp ? "Already have an account?" : "Don't have an account?")
+                        .font(.title3)
                         .foregroundColor(.secondary)
                     Button(action: onToggleAuthMode) {
                         Text(isSignUp ? "Sign In" : "Sign Up")
-                            .fontWeight(.semibold)
+                            .font(.title3)
+                            .fontWeight(.medium)
                     }
                 }
                 .font(.footnote)
@@ -112,6 +115,7 @@ struct AuthenticationFormView: View {
             if response.success, let _ = response.token {
                 userEmail = email
                 isAuthenticated = true
+                dismiss()
             } else {
                 errorMessage = response.message ?? "Authentication failed."
             }
@@ -120,3 +124,4 @@ struct AuthenticationFormView: View {
         }
     }
 }
+

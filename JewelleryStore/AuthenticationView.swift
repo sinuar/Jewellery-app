@@ -10,12 +10,16 @@ import SwiftUI
 struct AuthenticationView: View {
     @Binding var isAuthenticated: Bool
     @State private var isSignUp: Bool = false
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         VStack(spacing: 0) {
             HStack {
                 Spacer()
-                Button(action: { isAuthenticated = true }) {
+                Button(action: { 
+                    isAuthenticated = true
+                    dismiss()
+                }) {
                     Text("Skip")
                         .font(.headline)
                         .foregroundColor(.accentColor)
@@ -25,15 +29,6 @@ struct AuthenticationView: View {
             }
             .padding(.top, 8)
             .padding(.horizontal, 8)
-
-            // Authentication mode switcher
-//            Picker("Authentication Mode", selection: $isSignUp) {
-//                Text("Sign In").tag(false)
-//                Text("Sign Up").tag(true)
-//            }
-//            .pickerStyle(.segmented)
-//            .padding(.horizontal, 16)
-//            .padding(.top, 8)
 
             // Form content
             AuthenticationFormView(
