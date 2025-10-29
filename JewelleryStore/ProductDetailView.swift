@@ -7,12 +7,11 @@
 
 import SwiftUI
 
-import SwiftUI
-
 struct ProductDetailView: View {
     let product: CatalogView.DemoProduct
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var favoriteManager = FavoriteManager.shared
+    @EnvironmentObject var favoriteManager: FavoriteManager
+    @EnvironmentObject var shoppingBagManager: ShoppingBagManager
     @State private var isInBag = false
     
     var body: some View {
@@ -43,8 +42,8 @@ struct ProductDetailView: View {
                     
                     Spacer()
                     
-                    // Favorite Button
-                    Button(action: { 
+                    // Favourite Button
+                    Button(action: {
                         favoriteManager.toggleFavorite(for: product.id)
                     }) {
                         Image(systemName: favoriteManager.isFavorite(productId: product.id) ? "heart.fill" : "heart")
@@ -57,7 +56,7 @@ struct ProductDetailView: View {
                     }
                 }
                 .padding(.horizontal, 20)
-                .padding(.top, 50)
+                .padding(.top, 40)
                 
                 Spacer()
             }
@@ -89,17 +88,16 @@ struct ProductDetailView: View {
                     
                     Spacer()
                     
-                    Button(action: {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                            isInBag.toggle()
-                        }
-                        if isInBag {
-                            addToBag()
-                        } else {
-                            removeFromBag()
-                        }
-                        
-                    }) {
+                     Button(action: {
+                         withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                             isInBag.toggle()
+                         }
+                         if isInBag {
+                             addToBag()
+                         } else {
+                             removeFromBag()
+                         }
+                     }) {
                         VStack(spacing: 4) {
                             Image(systemName: isInBag ? "bag.fill" : "bag")
                                 .font(.title2.bold())
@@ -129,25 +127,28 @@ struct ProductDetailView: View {
     }
     
     private func addToBag() {
+        shoppingBagManager.add(product: product)
         print("Added \(product.name) to bag")
-        // You might want to add haptic feedback here
-        // UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
     }
     
     private func removeFromBag() {
+        shoppingBagManager.remove(productId: product.id)
         print("Removed \(product.name) from bag")
-        // Remove from shopping cart logic here
     }
 }
 
-
-
 #Preview {
-    ProductDetailView(product: CatalogView.DemoProduct(
-        id: 1,
-        name: "Diamond Ring",
-        price: 1299.0,
-        imageName: "rings01",
-        category: .rings
-    ))
+    NavigationView {
+        ProductDetailView(
+            product: CatalogView.DemoProduct(
+                id: 1,
+                name: "Diamond Ring",
+                price: 1299.00,
+                imageName: "rings01", category: .rings // replace with an image in your Assets
+            )
+        )
+        .environmentObject(FavoriteManager())
+    }
 }
+

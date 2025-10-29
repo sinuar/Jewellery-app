@@ -1,13 +1,12 @@
 import Foundation
 
 class FavoriteManager: ObservableObject {
-    static let shared = FavoriteManager()
     @Published private(set) var favoriteIds: Set<Int> = []
     
     private let defaults = UserDefaults.standard
     private let key = "favoriteProducts"
     
-    private init() {
+    init() {
         // Load saved favorites
         if let saved = defaults.array(forKey: key) as? [Int] {
             favoriteIds = Set(saved)

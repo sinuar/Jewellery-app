@@ -177,12 +177,10 @@ struct CatalogView: View {
                     .background(.ultraThinMaterial)
                     
                 case .favorites:
-                    FavoritesView(demoProducts: demoProducts)
+                    FavoritesView(selectedTab: $selectedTab, demoProducts: demoProducts)
                     
                 case .bag:
-                    Text("Shopping Bag")
-                        .font(.largeTitle)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    ShoppingBagView(onBack: { selectedTab = .home })
                 }
             }
         }

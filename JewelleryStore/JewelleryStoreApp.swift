@@ -9,9 +9,14 @@ import SwiftUI
 
 @main
 struct JewelleryStoreApp: App {
+    @StateObject private var favoriteManager = FavoriteManager()
+    @StateObject private var shoppingBagManager = ShoppingBagManager()
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(favoriteManager)
+                .environmentObject(shoppingBagManager)
         }
     }
 }
