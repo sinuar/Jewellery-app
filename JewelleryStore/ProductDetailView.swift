@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+import SwiftUI
+
 struct ProductDetailView: View {
     let product: CatalogView.DemoProduct
     @Environment(\.dismiss) private var dismiss
@@ -14,95 +16,101 @@ struct ProductDetailView: View {
     
     var body: some View {
         ZStack {
-            // Background
-            Color.black.ignoresSafeArea()
+            // MARK: - Background Image
+            GeometryReader { geometry in
+                Image(product.imageName)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: geometry.size.width, height: geometry.size.height)
+                    .clipped() // This prevents the image from overflowing
+            }
+            .ignoresSafeArea()
             
-            // Main product image
-            Image(product.imageName)
-                .resizable()
-                .scaledToFill()
-                .ignoresSafeArea()
-            
-            // Top navigation bar
+            // MARK: - Top Buttons (Back + Favorite)
             VStack {
                 HStack {
+                    // Back Button
                     Button(action: { dismiss() }) {
                         Image(systemName: "chevron.left")
-                            .font(.title2)
-                            .foregroundColor(.white)
-                            .padding(12)
-                            .background(.ultraThinMaterial, in: Circle())
+                            .font(.title3.bold())
+                            .foregroundColor(.black)
+                            .frame(width: 40, height: 40)
+                            .background(.ultraThinMaterial)
+                            .clipShape(Circle())
+                            .shadow(radius: 4)
                     }
                     
                     Spacer()
                     
+                    // Favorite Button
                     Button(action: { isFavorited.toggle() }) {
                         Image(systemName: isFavorited ? "heart.fill" : "heart")
-                            .font(.title2)
-                            .foregroundColor(isFavorited ? .red : .white)
-                            .padding(12)
-                            .background(.ultraThinMaterial, in: Circle())
+                            .font(.title3.bold())
+                            .foregroundColor(isFavorited ? .red : .black)
+                            .frame(width: 40, height: 40)
+                            .background(.ultraThinMaterial)
+                            .clipShape(Circle())
+                            .shadow(radius: 4)
                     }
                 }
-                .padding(.horizontal)
-                .padding(.top, 8)
+                .padding(.horizontal, 20)
+                .padding(.top, 50)
                 
                 Spacer()
             }
             
-            // Bottom overlay with product details
+            // MARK: - Bottom Product Details Card
             VStack {
                 Spacer()
                 
-                VStack(spacing: 16) {
-                    // Product name
-                    Text(product.name)
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .multilineTextAlignment(.center)
+                HStack(spacing: 16) {
+                    Image(product.imageName)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 60, height: 60)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
                     
-                    // Price
-                    Text("$\(product.price, specifier: "%.2f")")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .foregroundColor(.accentColor)
-                    
-                    // Add to bag button
-                    Button(action: addToBag) {
-                        HStack {
-                            Image(systemName: "bag")
-                            Text("Add to Bag")
-                        }
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.accentColor)
-                        .cornerRadius(16)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(product.name)
+                            .font(.headline)
+                            .foregroundColor(.black)
+                        
+                        Text("Gold, 18k, Embroidery option")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                        
+                        Text("$\(product.price, specifier: "%.2f")")
+                            .font(.subheadline.bold())
+                            .foregroundColor(.black.opacity(0.8))
                     }
-                    .padding(.horizontal)
+                    
+                    Spacer()
+                    
+                    Button(action: addToBag) {
+                        Image(systemName: "arrow.right")
+                            .font(.title3.bold())
+                            .foregroundColor(.white)
+                            .frame(width: 42, height: 42)
+                            .background(Color.black)
+                            .clipShape(Circle())
+                            .shadow(radius: 3)
+                    }
                 }
-                .padding(.vertical, 24)
-                .padding(.horizontal, 20)
-                .background(
-                    LinearGradient(
-                        gradient: Gradient(colors: [.clear, .black.opacity(0.8)]),
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
+                .padding(16)
+                .background(.ultraThinMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 22))
+                .padding(.horizontal, 16)
+                .padding(.bottom, 26)
             }
         }
         .navigationBarHidden(true)
     }
     
     private func addToBag() {
-        // TODO: Implement add to bag functionality
         print("Added \(product.name) to bag")
     }
 }
+
 
 #Preview {
     ProductDetailView(product: CatalogView.DemoProduct(
