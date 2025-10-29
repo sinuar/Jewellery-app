@@ -12,7 +12,7 @@ import SwiftUI
 struct ProductDetailView: View {
     let product: CatalogView.DemoProduct
     @Environment(\.dismiss) private var dismiss
-    @State private var isFavorited = false
+    @StateObject private var favoriteManager = FavoriteManager.shared
     @State private var isInBag = false
     
     var body: some View {
@@ -44,10 +44,12 @@ struct ProductDetailView: View {
                     Spacer()
                     
                     // Favorite Button
-                    Button(action: { isFavorited.toggle() }) {
-                        Image(systemName: isFavorited ? "heart.fill" : "heart")
+                    Button(action: { 
+                        favoriteManager.toggleFavorite(for: product.id)
+                    }) {
+                        Image(systemName: favoriteManager.isFavorite(productId: product.id) ? "heart.fill" : "heart")
                             .font(.title2.bold())
-                            .foregroundColor(isFavorited ? .red : .black)
+                            .foregroundColor(favoriteManager.isFavorite(productId: product.id) ? .red : .black)
                             .frame(width: 48, height: 48)
                             .background(.ultraThinMaterial)
                             .clipShape(Circle())
