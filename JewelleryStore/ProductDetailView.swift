@@ -13,6 +13,7 @@ struct ProductDetailView: View {
     let product: CatalogView.DemoProduct
     @Environment(\.dismiss) private var dismiss
     @State private var isFavorited = false
+    @State private var isInBag = false
     
     var body: some View {
         ZStack {
@@ -32,9 +33,9 @@ struct ProductDetailView: View {
                     // Back Button
                     Button(action: { dismiss() }) {
                         Image(systemName: "chevron.left")
-                            .font(.title3.bold())
+                            .font(.title2.bold())
                             .foregroundColor(.black)
-                            .frame(width: 40, height: 40)
+                            .frame(width: 48, height: 48)
                             .background(.ultraThinMaterial)
                             .clipShape(Circle())
                             .shadow(radius: 4)
@@ -45,9 +46,9 @@ struct ProductDetailView: View {
                     // Favorite Button
                     Button(action: { isFavorited.toggle() }) {
                         Image(systemName: isFavorited ? "heart.fill" : "heart")
-                            .font(.title3.bold())
+                            .font(.title2.bold())
                             .foregroundColor(isFavorited ? .red : .black)
-                            .frame(width: 40, height: 40)
+                            .frame(width: 48, height: 48)
                             .background(.ultraThinMaterial)
                             .clipShape(Circle())
                             .shadow(radius: 4)
@@ -76,7 +77,7 @@ struct ProductDetailView: View {
                             .foregroundColor(.black)
                         
                         Text("Gold, 18k, Embroidery option")
-                            .font(.caption)
+                            .font(.subheadline)
                             .foregroundColor(.gray)
                         
                         Text("$\(product.price, specifier: "%.2f")")
@@ -86,14 +87,32 @@ struct ProductDetailView: View {
                     
                     Spacer()
                     
-                    Button(action: addToBag) {
-                        Image(systemName: "arrow.right")
-                            .font(.title3.bold())
-                            .foregroundColor(.white)
-                            .frame(width: 42, height: 42)
-                            .background(Color.black)
-                            .clipShape(Circle())
-                            .shadow(radius: 3)
+                    Button(action: {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                            isInBag.toggle()
+                        }
+                        if isInBag {
+                            addToBag()
+                        } else {
+                            removeFromBag()
+                        }
+                        
+                    }) {
+                        VStack(spacing: 4) {
+                            Image(systemName: isInBag ? "bag.fill" : "bag")
+                                .font(.title2.bold())
+                                .foregroundColor(.white)
+                                .frame(width: 42, height: 42)
+                                .background(Color.black)
+                                .clipShape(Circle())
+                                .shadow(radius: 3)
+                            
+                            Text(isInBag ? "Added" : "Add to Bag")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundColor(.primary)
+                                .frame(height: 16)
+                        }
                     }
                 }
                 .padding(16)
@@ -104,12 +123,21 @@ struct ProductDetailView: View {
             }
         }
         .navigationBarHidden(true)
+        .statusBar(hidden: true)
     }
     
     private func addToBag() {
         print("Added \(product.name) to bag")
+        // You might want to add haptic feedback here
+        // UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+    }
+    
+    private func removeFromBag() {
+        print("Removed \(product.name) from bag")
+        // Remove from shopping cart logic here
     }
 }
+
 
 
 #Preview {
